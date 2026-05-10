@@ -191,3 +191,18 @@ job-hunting-api/
 ├── cv_engine/
 ├── cover_letters/
 └── recruiter_outreach/
+
+
+## Environment Setup
+
+- Project dependencies are listed in `requirements.txt`.
+- Local SQLite persistence is stored in `data/jobs.db`.
+- `.env` files should never be committed to version control.
+- `.env.example` is a template only and should be copied to create your local `.env`.
+
+
+## Manual Codex Execution
+
+- Codex can be used to run job search checks manually (connectors, parsing, scoring, import flow).
+- Replit can be added later for persistent runtime and daily automation workflows.
+- Current workflow is Codex + GitHub first, with a Replit-ready architecture for next steps.
