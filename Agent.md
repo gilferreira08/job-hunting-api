@@ -61,6 +61,7 @@ Avoid:
 3. Switzerland
 4. Luxembourg
 5. Remote Europe
+6. Brazil
 
 ## Approved Job Sources
 Only use or track jobs from:
