@@ -48,6 +48,8 @@ Priority markets include:
 2. Portugal
 3. Switzerland
 4. Luxembourg
+5. Brazil
+6. Remote Europe
 
 The platform may later support broader European and remote opportunities.
 
