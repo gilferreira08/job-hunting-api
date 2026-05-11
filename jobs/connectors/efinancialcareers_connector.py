@@ -215,14 +215,14 @@ class EFinancialCareersConnector(BaseConnector):
 
     def normalize_job(self, raw_job: dict) -> dict:
         url = str(raw_job.get("url", "")).strip()
-        external_id = url.rstrip("/").split("/")[-1] if url else None
+        external_id = url.rstrip("/").split("/")[-1] if url else ""
         return {
             "job_title": str(raw_job.get("title", "")).strip(),
             "company": str(raw_job.get("company", "Unknown company")).strip() or "Unknown company",
             "location": str(raw_job.get("location", "France/Europe")).strip() or "France/Europe",
             "source": self.source_name,
             "job_description": str(raw_job.get("description", "")).strip() or str(raw_job.get("title", "")).strip(),
-            "url": url,
+            "application_url": url,
             "external_job_id": external_id,
-            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "date_found": datetime.now(timezone.utc).isoformat(),
         }
