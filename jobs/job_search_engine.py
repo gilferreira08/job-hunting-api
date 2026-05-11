@@ -26,11 +26,27 @@ class JobSearchEngine:
 
         self.last_run_diagnostics = []
         for connector in self.connectors:
-            raw_jobs = connector.search_jobs(query, location, limit_per_source)
+            try:
+                raw_jobs = connector.search_jobs(query, location, limit_per_source)
+            except Exception as exc:  # keep multi-source run resilient
+                self.last_run_diagnostics.append(
+                    {
+                        "source": getattr(connector, "source_name", connector.__class__.__name__),
+                        "raw_jobs_returned": 0,
+                        "accepted_jobs_imported": 0,
+                        "rejected_jobs": 0,
+                        "diagnostic": f"search_failed: {exc}",
+                    }
+                )
+                continue
+            accepted = 0
+            rejected = 0
             self.last_run_diagnostics.append(
                 {
                     "source": getattr(connector, "source_name", connector.__class__.__name__),
                     "raw_jobs_returned": len(raw_jobs),
+                    "accepted_jobs_imported": 0,
+                    "rejected_jobs": 0,
                     "diagnostic": getattr(connector, "last_diagnostic", ""),
                 }
             )
@@ -45,8 +61,12 @@ class JobSearchEngine:
                     record = self.importer.import_job(normalized)
                 except JobImportValidationError:
                     # Skip malformed entries gracefully; continue processing source feed.
+                    rejected += 1
                     continue
+                accepted += 1
                 imported_jobs.append(record)
+            self.last_run_diagnostics[-1]["accepted_jobs_imported"] = accepted
+            self.last_run_diagnostics[-1]["rejected_jobs"] = rejected
 
         # Ranking is deterministic and score-driven.
         return sorted(imported_jobs, key=lambda item: item.score, reverse=True)
