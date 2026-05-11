@@ -7,7 +7,6 @@ Runnable with:
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
 
 
@@ -30,9 +29,10 @@ def _check_dependencies() -> bool:
 if not _check_dependencies():
     sys.exit(1)
 
-from jobs.connectors.company_careers_connector import CompanyCareersConnector
 from jobs.connectors.efinancialcareers_connector import EFinancialCareersConnector
-from jobs.connectors.france_travail_connector import FranceTravailConnector
+from jobs.connectors.hellowork_connector import HelloWorkConnector
+from jobs.connectors.indeed_connector import IndeedConnector
+from jobs.connectors.wttj_connector import WTTJConnector
 from jobs.job_importer import JobImporter
 from jobs.job_search_engine import JobSearchEngine
 from jobs.sqlite_repository import SQLiteJobRepository
@@ -45,19 +45,12 @@ DEFAULT_QUERIES = [
 
 
 def _build_connectors() -> list:
-    connectors = [
+    return [
         EFinancialCareersConnector(),
-        # Generic company connector placeholder; pass a target company URL as needed.
-        CompanyCareersConnector(company_name="Generic Company", careers_url=""),
+        HelloWorkConnector(),
+        IndeedConnector(),
+        WTTJConnector(),
     ]
-
-    has_france_travail = bool(os.getenv("FRANCE_TRAVAIL_CLIENT_ID") and os.getenv("FRANCE_TRAVAIL_CLIENT_SECRET"))
-    if has_france_travail:
-        connectors.insert(0, FranceTravailConnector())
-    else:
-        print("France Travail credentials not found; connector skipped.")
-
-    return connectors
 
 
 def run_manual_search(location: str = "France", limit_per_source: int = 10) -> None:
@@ -78,7 +71,8 @@ def run_manual_search(location: str = "France", limit_per_source: int = 10) -> N
         for diag in search_engine.last_run_diagnostics:
             print(
                 f"[diag] {diag.get('source')}: "
-                f"raw={diag.get('raw_jobs_returned')} | {diag.get('diagnostic')}"
+                f"raw={diag.get('raw_jobs_returned')} accepted={diag.get('accepted_jobs_imported')} "
+                f"rejected={diag.get('rejected_jobs')} | {diag.get('diagnostic')}"
             )
         all_results.extend(results)
 
