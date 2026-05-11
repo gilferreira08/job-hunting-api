@@ -9,35 +9,39 @@ from bs4 import BeautifulSoup
 from jobs.connectors.base_connector import BaseConnector
 
 
-class WTTJConnector(BaseConnector):
-    source_name = "welcometothejungle"
+class HelloWorkConnector(BaseConnector):
+    source_name = "hellowork"
 
     def __init__(self) -> None:
-        self.base_url = "https://www.welcometothejungle.com"
+        self.base_url = "https://www.hellowork.com"
         self.last_diagnostic = "not-run"
 
     def search_jobs(self, query: str, location: str | None = None, limit: int = 10) -> list[dict]:
-        search_url = f"{self.base_url}/en/jobs?query={quote_plus(query)}&aroundQuery={quote_plus(location or 'France')}"
+        loc = quote_plus((location or "France").strip())
+        q = quote_plus(query)
+        search_url = f"{self.base_url}/fr-fr/emploi/recherche.html?k={q}&l={loc}"
         try:
             r = requests.get(search_url, timeout=20)
             r.raise_for_status()
         except requests.RequestException as exc:
-            self.last_diagnostic = f"WTTJ search failed url={search_url} error={exc}"
+            self.last_diagnostic = f"HelloWork search failed url={search_url} error={exc}"
             return []
 
         soup = BeautifulSoup(r.text, "html.parser")
         anchors = soup.select("a[href]")
-        out = []
+        candidates = []
         for a in anchors:
             href = a.get("href", "")
             title = " ".join(a.get_text(" ", strip=True).split())
-            if "/jobs/" not in href or not title:
+            if not href or not title:
                 continue
-            out.append({"title": title, "url": urljoin(self.base_url, href), "location": location or "France"})
-            if len(out) >= limit:
+            if "emploi" not in href.lower() and "job" not in href.lower():
+                continue
+            candidates.append({"title": title, "url": urljoin(self.base_url, href), "location": location or "France"})
+            if len(candidates) >= limit:
                 break
-        self.last_diagnostic = f"WTTJ search_url={search_url} status={r.status_code} candidates={len(out)}"
-        return out
+        self.last_diagnostic = f"HelloWork search_url={search_url} status={r.status_code} candidates={len(candidates)}"
+        return candidates
 
     def fetch_job_details(self, raw_job: dict) -> dict:
         detail_url = str(raw_job.get("url", "")).strip()
@@ -47,19 +51,21 @@ class WTTJConnector(BaseConnector):
             r = requests.get(detail_url, timeout=20)
             r.raise_for_status()
         except requests.RequestException as exc:
-            self.last_diagnostic = f"WTTJ detail failed detail_url={detail_url} error={exc}"
+            self.last_diagnostic = f"HelloWork detail_failed detail_url={detail_url} error={exc}"
             return self.normalize_job(raw_job)
 
         soup = BeautifulSoup(r.text, "html.parser")
-        title_node = soup.select_one("h1")
-        title = title_node.get_text(" ", strip=True) if title_node else str(raw_job.get("title", "")).strip()
-        company_node = soup.select_one("[data-testid='company-name'], a[href*='/companies/']")
-        company = company_node.get_text(" ", strip=True) if company_node else "Unknown company"
-        location_node = soup.select_one("[data-testid='job-location'], [class*='location']")
-        location = location_node.get_text(" ", strip=True) if location_node else str(raw_job.get("location", "France"))
-        description_node = soup.select_one("main") or soup.select_one("article") or soup
-        description = " ".join(description_node.get_text(" ", strip=True).split())
-        return self.normalize_job({"title": title, "company": company, "location": location, "description": description, "url": detail_url})
+        title = (soup.select_one("h1").get_text(" ", strip=True) if soup.select_one("h1") else raw_job.get("title", ""))
+        company = ""
+        for sel in ["[data-testid='company-name']", ".company", "a[href*='entreprise']"]:
+            node = soup.select_one(sel)
+            if node and node.get_text(strip=True):
+                company = node.get_text(" ", strip=True)
+                break
+        location = raw_job.get("location", "France")
+        desc_node = soup.select_one("main") or soup.select_one("article") or soup
+        description = " ".join(desc_node.get_text(" ", strip=True).split())
+        return self.normalize_job({"title": title, "company": company or "Unknown company", "location": location, "description": description, "url": detail_url})
 
     def normalize_job(self, raw_job: dict) -> dict:
         url = str(raw_job.get("url", "")).strip()

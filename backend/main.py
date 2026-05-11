@@ -4,9 +4,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from ai.job_insights import JobInsightsGenerator
-from jobs.connectors.company_careers_connector import CompanyCareersConnector
 from jobs.connectors.efinancialcareers_connector import EFinancialCareersConnector
-from jobs.connectors.france_travail_connector import FranceTravailConnector
+from jobs.connectors.hellowork_connector import HelloWorkConnector
+from jobs.connectors.indeed_connector import IndeedConnector
 from jobs.connectors.wttj_connector import WTTJConnector
 from jobs.job_search_engine import JobSearchEngine
 from jobs.job_importer import JobImportValidationError, JobImporter
@@ -21,7 +21,7 @@ repository = SQLiteJobRepository(db_path="data/jobs.db")
 importer = JobImporter(scorer=scorer, repository=repository)
 insights_generator = JobInsightsGenerator()
 search_engine = JobSearchEngine(
-    connectors=[FranceTravailConnector(), WTTJConnector(), EFinancialCareersConnector(), CompanyCareersConnector()],
+    connectors=[EFinancialCareersConnector(), HelloWorkConnector(), IndeedConnector(), WTTJConnector()],
     importer=importer,
 )
 
