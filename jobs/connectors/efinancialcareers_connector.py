@@ -235,3 +235,7 @@ class EFinancialCareersConnector(BaseConnector):
             "external_job_id": external_id,
             "date_found": datetime.now(timezone.utc).isoformat(),
         }
+
+    def fetch_job_details(self, raw_job: dict) -> dict:
+        """Placeholder detail-enrichment step for future deep job-page extraction."""
+        return self.normalize_job(raw_job)
