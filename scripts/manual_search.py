@@ -61,7 +61,7 @@ def _build_connectors() -> list:
 
 
 def run_manual_search(location: str = "France", limit_per_source: int = 10) -> None:
-    repository = SQLiteJobRepository(db_path="data/jobs.db")
+    repository = SQLiteJobRepository(db_path="data/jobs_test.db")
     importer = JobImporter(scorer=JobScorer(), repository=repository)
     search_engine = JobSearchEngine(connectors=_build_connectors(), importer=importer)
 
@@ -92,7 +92,7 @@ def run_manual_search(location: str = "France", limit_per_source: int = 10) -> N
         print(f"   Company: {job.company}")
         print(f"   Location: {job.location}")
         print(f"   Source: {job.source}")
-        print(f"   URL: {job.parsed_signals.get('source_url', '') if isinstance(job.parsed_signals, dict) else ''}")
+        print(f"   URL: {job.application_url}")
         print(f"   Strengths: {', '.join(job.strengths)}")
         print(f"   Gaps: {', '.join(job.gaps)}")
 

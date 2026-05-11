@@ -36,6 +36,13 @@ class EFinancialCareersConnector(BaseConnector):
         "back office only",
         "internship",
     ]
+    EXCLUDED_NON_JOB_TITLES = {
+        "apply now",
+        "apply first",
+        "hybrid",
+        "flexible",
+        "in-office",
+    }
 
     def __init__(self) -> None:
         self.base_url_global = "https://www.efinancialcareers.com"
@@ -176,6 +183,8 @@ class EFinancialCareersConnector(BaseConnector):
             if "/jobs/" in href.lower():
                 anchors_with_jobs_path += 1
             if not title or not href:
+                continue
+            if title.strip().lower() in self.EXCLUDED_NON_JOB_TITLES:
                 continue
 
             haystack = f"{title.lower()} {href.lower()}"
