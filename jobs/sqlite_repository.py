@@ -46,6 +46,9 @@ class SQLiteJobRepository:
                     location TEXT NOT NULL,
                     source TEXT NOT NULL,
                     job_description TEXT NOT NULL,
+                    application_url TEXT NOT NULL DEFAULT '',
+                    external_job_id TEXT NOT NULL DEFAULT '',
+                    date_found TEXT NOT NULL DEFAULT '',
                     parsed_signals_json TEXT NOT NULL,
                     score INTEGER NOT NULL,
                     recommendation TEXT NOT NULL,
@@ -59,6 +62,15 @@ class SQLiteJobRepository:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at DESC)"
             )
+            existing_columns = {
+                row["name"] for row in connection.execute("PRAGMA table_info(jobs)").fetchall()
+            }
+            if "application_url" not in existing_columns:
+                connection.execute("ALTER TABLE jobs ADD COLUMN application_url TEXT NOT NULL DEFAULT ''")
+            if "external_job_id" not in existing_columns:
+                connection.execute("ALTER TABLE jobs ADD COLUMN external_job_id TEXT NOT NULL DEFAULT ''")
+            if "date_found" not in existing_columns:
+                connection.execute("ALTER TABLE jobs ADD COLUMN date_found TEXT NOT NULL DEFAULT ''")
 
     def add_job(
         self,
@@ -68,6 +80,9 @@ class SQLiteJobRepository:
         location: str,
         source: str,
         job_description: str,
+        application_url: str,
+        external_job_id: str = "",
+        date_found: str | None = None,
         parsed_signals: ParsedJobSignals,
         score: int,
         recommendation: str,
@@ -86,6 +101,9 @@ class SQLiteJobRepository:
             location=location,
             source=source,
             job_description=job_description,
+            application_url=application_url,
+            external_job_id=external_job_id,
+            date_found=date_found or datetime.now(timezone.utc).isoformat(),
             parsed_signals=parsed_signals,
             score=score,
             recommendation=recommendation,
@@ -100,9 +118,10 @@ class SQLiteJobRepository:
                 """
                 INSERT INTO jobs (
                     id, job_title, company, location, source, job_description,
+                    application_url, external_job_id, date_found,
                     parsed_signals_json, score, recommendation,
                     strengths_json, gaps_json, application_status, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     record.id,
@@ -111,6 +130,9 @@ class SQLiteJobRepository:
                     record.location,
                     record.source,
                     record.job_description,
+                    record.application_url,
+                    record.external_job_id,
+                    record.date_found,
                     json.dumps(record.parsed_signals),
                     record.score,
                     record.recommendation,
@@ -172,6 +194,9 @@ class SQLiteJobRepository:
             location=row["location"],
             source=row["source"],
             job_description=row["job_description"],
+            application_url=row["application_url"],
+            external_job_id=row["external_job_id"],
+            date_found=row["date_found"],
             parsed_signals=json.loads(row["parsed_signals_json"]),
             score=row["score"],
             recommendation=row["recommendation"],

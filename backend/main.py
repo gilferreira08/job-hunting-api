@@ -34,6 +34,9 @@ class ScoreJobRequest(BaseModel):
     location: str
     source: str = "manual"
     job_description: str
+    application_url: str
+    external_job_id: str = ""
+    date_found: str | None = None
 
 
 class JobResponse(BaseModel):
@@ -43,6 +46,9 @@ class JobResponse(BaseModel):
     location: str
     source: str
     job_description: str
+    application_url: str
+    external_job_id: str
+    date_found: str
     parsed_signals: ParsedJobSignals
     score: int
     recommendation: str
@@ -162,6 +168,9 @@ def _to_job_response(job: JobRecord, ai_insights: dict[str, str] | None = None) 
         location=job.location,
         source=job.source,
         job_description=job.job_description,
+        application_url=job.application_url,
+        external_job_id=job.external_job_id,
+        date_found=job.date_found,
         parsed_signals=job.parsed_signals,
         score=job.score,
         recommendation=job.recommendation,
