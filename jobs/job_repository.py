@@ -23,6 +23,9 @@ class JobRecord:
     location: str
     source: str
     job_description: str
+    application_url: str
+    external_job_id: str
+    date_found: str
     parsed_signals: ParsedJobSignals
     score: int
     recommendation: str
@@ -52,6 +55,9 @@ class JobRepository:
         location: str,
         source: str,
         job_description: str,
+        application_url: str,
+        external_job_id: str = "",
+        date_found: str | None = None,
         parsed_signals: ParsedJobSignals,
         score: int,
         recommendation: str,
@@ -72,6 +78,9 @@ class JobRepository:
             location=location,
             source=source,
             job_description=job_description,
+            application_url=application_url,
+            external_job_id=external_job_id,
+            date_found=date_found or datetime.now(timezone.utc).isoformat(),
             parsed_signals=parsed_signals,
             score=score,
             recommendation=recommendation,
