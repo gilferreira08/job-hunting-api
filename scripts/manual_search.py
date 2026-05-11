@@ -30,8 +30,6 @@ if not _check_dependencies():
     sys.exit(1)
 
 from jobs.connectors.efinancialcareers_connector import EFinancialCareersConnector
-from jobs.connectors.hellowork_connector import HelloWorkConnector
-from jobs.connectors.indeed_connector import IndeedConnector
 from jobs.connectors.wttj_connector import WTTJConnector
 from jobs.job_importer import JobImporter
 from jobs.job_search_engine import JobSearchEngine
@@ -47,8 +45,7 @@ DEFAULT_QUERIES = [
 def _build_connectors() -> list:
     return [
         EFinancialCareersConnector(),
-        HelloWorkConnector(),
-        IndeedConnector(),
+        # Lean validation scope: focus on sources with best extraction stability first.
         WTTJConnector(),
     ]
 
