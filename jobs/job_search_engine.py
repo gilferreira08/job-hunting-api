@@ -24,7 +24,6 @@ class JobSearchEngine:
     ) -> list[JobRecord]:
         imported_jobs: list[JobRecord] = []
 
-
         self.last_run_diagnostics = []
         for connector in self.connectors:
             raw_jobs = connector.search_jobs(query, location, limit_per_source)
@@ -36,7 +35,10 @@ class JobSearchEngine:
                 }
             )
             for raw_job in raw_jobs:
-                normalized = connector.normalize_job(raw_job)
+                # Two-step connector contract:
+                # 1) search_jobs returns raw/candidate summaries (typically with URL)
+                # 2) fetch_job_details returns full normalized schema for importer
+                normalized = connector.fetch_job_details(raw_job)
                 try:
                     # Importer handles normalization/validation/scoring/storage and
                     # repository handles duplicate prevention.
